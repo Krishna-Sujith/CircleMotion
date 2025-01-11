@@ -9,6 +9,12 @@ SCREEN_WIDTH=1200
 SCREEN_HEIGHT=800
 FPS=30
 
+pygame.init()
+pygame.mixer.init()
+
+balloon_pop_sound=pygame.mixer.Sound('balloon-pop-48030.mp3')
+fish_eat_sound=pygame.mixer.Sound('chomp-155392.mp3')
+fanfare_sound=pygame.mixer.Sound('fanfare-1-276819.mp3')\
 
 screen=pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT))
 pygame.display.set_caption("Procedurally Animated")
@@ -59,6 +65,8 @@ def display_win_msg():
 
     x_pos=(SCREEN_WIDTH-text_width)//2
     y_pos=(SCREEN_HEIGHT-text_height)//2
+
+    fanfare_sound.play()
 
     running=True
     while running:
@@ -145,6 +153,7 @@ while running:
         if basic_chain.check_collision_with_fish(fish_rect):
             score+=fish.score
             basic_chain.health+=int(fish.score//2)
+            fish_eat_sound.play()
             if basic_chain.health>=100:
                 basic_chain.health=100
             fishes_list.remove(fish)
@@ -154,6 +163,7 @@ while running:
 
     for bubble in bubbles_list[:]:
         if basic_chain.check_collision_with_bubble(bubble):
+            balloon_pop_sound.play()
             bubbles_list.remove(bubble)
             new_bubble=Bubble()
             bubbles_list.append(new_bubble)
