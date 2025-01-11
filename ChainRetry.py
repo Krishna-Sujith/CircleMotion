@@ -51,6 +51,7 @@ class ChainRetry:
         self.vertex_radii=vertex_radii
 
         self.movement_speed=8
+        self.health=100
 
         self.initial_offset_vec=pygame.math.Vector2(1,0)*self.edgeSize
 
@@ -64,6 +65,25 @@ class ChainRetry:
         self.angles=[0.0]
         for i in range(1, self.vertexCount):
             self.angles.append(0.0)
+
+    def draw_health_bar(self, screen):
+        bar_width=200
+        bar_height=20
+        x=20
+        y=20
+
+        pygame.draw.rect(screen, (0, 0, 0), (x - 2, y - 2, bar_width + 4, bar_height + 4))
+        pygame.draw.rect(screen,(100,100,100),(x,y,bar_width,bar_height))
+
+        health_width=(self.health/100)*bar_width
+
+        if self.health>30:
+            pygame.draw.rect(screen, (0, 255, 0), (x, y, health_width, bar_height))
+        else:
+            pygame.draw.rect(screen, (255, 0, 0), (x, y, health_width, bar_height))
+
+        health_text = font.render(f"Health: {self.health}%", True, WHITE)
+        screen.blit(health_text, (x + bar_width + 10, y))
 
     def move_chain(self,mouse_pos):
         mouse_vec=pygame.math.Vector2(mouse_pos[0],mouse_pos[1])
@@ -138,10 +158,58 @@ class ChainRetry:
         
         return distance<=head_rad
 
+    def check_collision_with_bubble(self,bubble):
+        head_vertex = self.vertices[0]
+        distance = pygame.math.Vector2(head_vertex.x - bubble.x, head_vertex.y - bubble.y).magnitude()
+
+        if distance <= bubble.radius + self.vertex_radii[0]:
+            self.health -= int(bubble.radius * 0.5)
+            if self.health < 0:
+                self.health=0
+            return True
+        return False
+
     def display(self, screen):
         pygame.draw.lines(screen,WHITE,False,self.vertices,3)
         for idx,vertex in enumerate(self.vertices):
             pygame.draw.circle(screen,RED, vertex,self.vertex_radii[idx],0)
+
+        head_vertex = self.vertices[0]
+        head_radius = self.vertex_radii[0]
+        head_angle = self.angles[0]
+
+        eye_offset_distance = head_radius // 2
+        eye_offset_angle = math.pi / 4
+
+
+        left_eye_pos=(
+        head_vertex.x+eye_offset_distance*math.cos(head_angle-eye_offset_angle),
+        head_vertex.y+eye_offset_distance*math.sin(head_angle-eye_offset_angle),
+        )
+        right_eye_pos=(
+            head_vertex.x+eye_offset_distance*math.cos(head_angle+eye_offset_angle),
+            head_vertex.y+eye_offset_distance*math.sin(head_angle+eye_offset_angle),
+        )
+
+        eye_radius =max(2, head_radius // 5)  # Adjusting eye size based on head size
+        pygame.draw.circle(screen, WHITE, left_eye_pos, eye_radius)
+        pygame.draw.circle(screen, WHITE, right_eye_pos, eye_radius)
+
+
+        pupil_radius= max(1, eye_radius // 2)
+        pupil_offset_distance =eye_radius // 2  #Adding some pupil offset to add some directionality.
+        pupil_left_pos= (
+            left_eye_pos[0]+pupil_offset_distance*math.cos(head_angle),
+            left_eye_pos[1]+pupil_offset_distance*math.sin(head_angle),
+        )
+        pupil_right_pos=(
+            right_eye_pos[0]+pupil_offset_distance*math.cos(head_angle),
+            right_eye_pos[1]+pupil_offset_distance*math.sin(head_angle),
+        )
+        pygame.draw.circle(screen, (0, 0, 0), pupil_left_pos, pupil_radius)
+        pygame.draw.circle(screen, (0, 0, 0), pupil_right_pos, pupil_radius)
+
+        self.draw_health_bar(screen)
 
         # points=[]
         # for i in range(1, self.vertexCount):
