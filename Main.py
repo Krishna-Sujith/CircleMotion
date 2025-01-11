@@ -1,9 +1,9 @@
 import pygame
-import numpy as np
 # from Chain import *
 from ChainRetry import *
 from Fish import *
 from Bubble import *
+import sys
 
 SCREEN_WIDTH=1200
 SCREEN_HEIGHT=800
@@ -49,6 +49,27 @@ camera_x, camera_y=0,0
 screen_center_x,screen_center_y=SCREEN_WIDTH//2, SCREEN_HEIGHT//2
 
 player_head=basic_chain.vertices[0]
+
+def display_win_msg():
+    win_msg="You have won!!!"
+    win_font_size=150
+    win_font=pygame.font.Font(None, win_font_size)
+    text_surf=win_font.render(win_msg, True,(255,255,255))
+    text_width, text_height=text_surf.get_size()
+
+    x_pos=(SCREEN_WIDTH-text_width)//2
+    y_pos=(SCREEN_HEIGHT-text_height)//2
+
+    running=True
+    while running:
+        for event in pygame.event.get():
+            if event.type==pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+        
+        screen.blit(text_surf,(x_pos,y_pos))
+        pygame.display.flip()
+    pass
 
 running=True
 while running:
@@ -137,8 +158,10 @@ while running:
             new_bubble=Bubble()
             bubbles_list.append(new_bubble)
 
-
     pygame.display.flip()
+
+    if score>=100:
+        display_win_msg()
+        pass
+
     clock.tick(FPS)
-
-
